@@ -1,7 +1,10 @@
 {
   "compilerOptions": {
+    // Bun グローバル（Bun.build 等）と React の型を明示的に読み込む
+    "types": ["bun", "react", "react-dom"],
+
     // Environment setup & latest features
-    "lib": ["ESNext"],
+    "lib": ["ESNext", "DOM"],
     "target": "ESNext",
     "module": "Preserve",
     "moduleDetection": "force",
