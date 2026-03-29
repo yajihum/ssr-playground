@@ -1,6 +1,6 @@
-import { Content } from "./Content";
+import { Router } from "./Router";
 
-export function App() {
+export function App({ path }: { path: string }) {
   return (
     <html>
       <head>
@@ -8,7 +8,7 @@ export function App() {
         <title>SSR Playground</title>
       </head>
       <body>
-        <Content />
+        <Router initialPath={path} />
       </body>
     </html>
   );

@@ -20,37 +20,35 @@ async function logStream(stream: ReadableStream, decoder: TextDecoder) {
 
 const server = Bun.serve({
   routes: {
-    "/": async () => {
-      // streamを返す
-      try {
-        const stream = await renderToReadableStream(<App />, {
-          bootstrapScripts: ["/main.js"],
-          onError(error) {
-            console.error("SSR streaming error:", error);
-          },
-        });
-
-        // streamをteeして2つのstreamに分割
-        const [stream1, stream2] = stream.tee();
-        const decoder = new TextDecoder();
-
-        // stream2をgetReaderでログ出力
-        logStream(stream2, decoder);
-
-        return new Response(stream1, {
-          headers: { "Content-Type": "text/html" },
-        });
-      } catch (error: unknown) {
-        return new Response(`<h1>Something went wrong</h1>`, {
-          status: 500,
-          headers: { "Content-Type": "text/html" },
-        });
-      }
-    },
     "/main.js": () =>
       new Response(clientFile, {
         headers: { "Content-Type": "application/javascript" },
       }),
+  },
+  async fetch(req) {
+    const url = new URL(req.url);
+
+    try {
+      const stream = await renderToReadableStream(<App path={url.pathname} />, {
+        bootstrapScripts: ["/main.js"],
+        onError(error) {
+          console.error("SSR streaming error:", error);
+        },
+      });
+
+      const [stream1, stream2] = stream.tee();
+      const decoder = new TextDecoder();
+      logStream(stream2, decoder);
+
+      return new Response(stream1, {
+        headers: { "Content-Type": "text/html" },
+      });
+    } catch (error: unknown) {
+      return new Response(`<h1>Something went wrong</h1>`, {
+        status: 500,
+        headers: { "Content-Type": "text/html" },
+      });
+    }
   },
 });
 
