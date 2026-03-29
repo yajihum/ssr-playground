@@ -1,6 +1,6 @@
 import { Content } from "./Content";
 
-export const About: React.FC = () => {
+const About: React.FC = () => {
   return (
     <div>
       <h1>About</h1>
@@ -10,3 +10,5 @@ export const About: React.FC = () => {
     </div>
   );
 };
+
+export default About;

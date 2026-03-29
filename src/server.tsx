@@ -1,12 +1,15 @@
 import { App } from "./components/App";
 import { renderToReadableStream } from "react-dom/server";
 
-const clientBuild = await Bun.build({
+await Bun.build({
   entrypoints: ["./src/client.tsx"],
   outdir: "./dist",
-  naming: "main.js",
+  splitting: true,
+  naming: {
+    entry: "[name].[ext]",
+    chunk: "[name]-[hash].[ext]",
+  },
 });
-const clientFile = await clientBuild.outputs[0]?.text();
 
 async function logStream(stream: ReadableStream, decoder: TextDecoder) {
   const reader = stream.getReader();
@@ -19,18 +22,23 @@ async function logStream(stream: ReadableStream, decoder: TextDecoder) {
 }
 
 const server = Bun.serve({
-  routes: {
-    "/main.js": () =>
-      new Response(clientFile, {
-        headers: { "Content-Type": "application/javascript" },
-      }),
-  },
   async fetch(req) {
     const url = new URL(req.url);
 
+    // dist/ 配下の JS ファイルを配信
+    if (url.pathname.endsWith(".js")) {
+      const file = Bun.file(`./dist${url.pathname}`);
+      const isFileExists = await file.exists();
+      if (isFileExists) {
+        return new Response(file, {
+          headers: { "Content-Type": "application/javascript" },
+        });
+      }
+    }
+
     try {
       const stream = await renderToReadableStream(<App path={url.pathname} />, {
-        bootstrapScripts: ["/main.js"],
+        bootstrapModules: ["/client.js"],
         onError(error) {
           console.error("SSR streaming error:", error);
         },

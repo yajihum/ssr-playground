@@ -1,6 +1,4 @@
-import { useState, useEffect } from "react";
-import { Home } from "./Home";
-import { About } from "./About";
+import { useState, useEffect, startTransition, lazy, Suspense } from "react";
 
 function shouldNotIntercept(navigationEvent: NavigateEvent): boolean {
   return (
@@ -17,9 +15,9 @@ type Route = {
 };
 
 export const routes: Route[] = [
-  { path: "/", component: Home },
-  { path: "/about", component: About },
-];
+  { path: "/", component: lazy(() => import("./Home")) },
+  { path: "/about", component: lazy(() => import("./About")) },
+] as const;
 
 export function Router({ initialPath }: { initialPath: string }) {
   const [path, setPath] = useState(initialPath);
@@ -48,5 +46,9 @@ export function Router({ initialPath }: { initialPath: string }) {
   if (!matched) return null;
 
   const Component = matched.component;
-  return <Component />;
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <Component />
+    </Suspense>
+  );
 }
