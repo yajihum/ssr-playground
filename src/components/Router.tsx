@@ -33,7 +33,9 @@ export function Router({ initialPath }: { initialPath: string }) {
 
       event.intercept({
         handler: () => {
-          setPath(url.pathname);
+          startTransition(() => {
+            setPath(url.pathname);
+          });
         },
       });
     };
